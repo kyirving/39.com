@@ -1,0 +1,16 @@
+version: '3'
+mysql: 
+  host: 106.14.25.54
+  port: 3306
+  user: wuh
+  password: admin@888
+  database: wuh
+  charset: utf8mb4
+log:
+  level: debug
+  dir: /tmp/wwwlogs/
+redis: 
+  host: 106.14.25.54
+  port: 6379
+  password: admin@888
+  db: 0
