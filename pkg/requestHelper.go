@@ -77,6 +77,6 @@ func (req *ReqOption) sendRequest() {
 			req.Msg = "请求失败"
 		}
 
-		request.Body.Close()
+		resp.Body.Close()
 	}()
 }
