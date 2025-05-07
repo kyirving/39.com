@@ -28,10 +28,16 @@ type AppConf struct {
 	Port int
 }
 
+type LogConf struct {
+	Level string
+	Dir   string
+}
+
 type Config struct {
 	Mysql MysqlConf
 	Redis RedisConf
 	App   AppConf
+	Log   LogConf
 }
 
 // 全局配置

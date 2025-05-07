@@ -20,5 +20,6 @@ func main() {
 
 	// 初始化路由
 	router := routes.InitRoutes()
+	// 启动服务
 	router.Run(":8080")
 }

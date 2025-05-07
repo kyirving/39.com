@@ -1,0 +1,14 @@
+DROP TABLE IF EXISTS `user`;
+-- 创建用户信息DDL
+CREATE TABLE IF NOT EXISTS `user`(
+	id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+   username VARCHAR(128) NOT NULL COMMENT '用户名', ##VARCHAR最大长度为255，超过255需要系统转为TEXT类型
+   password VARCHAR(128) DEFAULT NULL COMMENT '密码',
+   phone VARCHAR(20) NOT NULL UNIQUE COMMENT '手机号', #加密处理
+   balance DECIMAL(10,2) NOT NULL DEFAULT 0.00 COMMENT '余额',
+   status TINYINT(1) UNSIGNED NOT NULL DEFAULT 1 COMMENT '状态，1：正常，2：禁用 ...',
+   reg_type TINYINT(1) UNSIGNED NOT NULL DEFAULT 1 COMMENT '注册类型，1：手机号注册，2：密码注册， 3：邮箱注册',
+   ctime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+   uptime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+   KEY `idx_phone` (`phone`, `username`) USING btree COMMENT '手机号索引' #btree索引，默认索引，不指定索引类型，默认btree
+) comment '用户信息';
