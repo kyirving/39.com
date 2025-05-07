@@ -22,7 +22,9 @@ func InitMysql() {
 
 	dns := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		conf.User, conf.Password, conf.Host, conf.Port, conf.Database)
-	db, err := gorm.Open(mysql.New(mysql.Config{
+
+	var err error
+	db, err = gorm.Open(mysql.New(mysql.Config{
 		DSN:                       dns,   // DSN data source name
 		DefaultStringSize:         128,   // string 类型字段的默认长度
 		DisableDatetimePrecision:  true,  // 禁用 datetime 精度，MySQL 5.6 之前的数据库不支持
@@ -37,6 +39,7 @@ func InitMysql() {
 	if err != nil {
 		panic("failed to get database connection pool :" + err.Error())
 	}
+
 	// SetMaxIdleConns 设置空闲连接池中连接的最大数量
 	sqlDB.SetMaxIdleConns(10)
 	// SetMaxOpenConns 设置打开数据库连接的最大数量。

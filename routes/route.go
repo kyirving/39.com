@@ -17,6 +17,6 @@ func InitRoutes() *gin.Engine {
 }
 
 func RegisterUserRoutes(r *gin.Engine) {
-	user := &controllers.UserController{}
+	user := controllers.NewUserController()
 	r.POST("/user/add", user.Add)
 }
