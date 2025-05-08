@@ -8,10 +8,10 @@ import (
 )
 
 type BaseModel struct {
-	ID     uint `gorm:"primarykey"`
-	Status uint8
-	Ctime  time.Time
-	Uptime time.Time
+	ID     uint      `gorm:"primarykey"`
+	Status uint8     `gorm:"default:1"`
+	Ctime  time.Time `gorm:"autoCreateTime"`
+	Uptime time.Time `gorm:"autoUpdateTime"`
 	Db     *gorm.DB
 }
 
