@@ -1,0 +1,87 @@
+# lnap 服务搭建
+version: '3' # 版本号
+
+# 固定关键字，定义应用程序中所需要运行的所有服务（容器）
+services:
+  # 服务名
+  nginx:
+    # 容器别名
+    container_name: nginx
+    # 镜像名
+    image: nginx:latest
+    # 端口映射
+    ports:
+      - 81:80 # 主机端口:容器端口
+      - 443:443
+    # 挂载目录
+    volumes:
+      - /home/wuh/docker/nginx/conf.d:/etc/nginx/conf.d # 配置文件目录 [站点目录]
+      - /home/wuh/docker/nginx/logs:/var/log/nginx # 日志文件目录
+      - /data/www:/usr/share/nginx/html # 网站根目录
+    # 设置用户
+    #user: "www"
+    # 网络模式
+    networks:
+      - lnmp-network
+    # 依赖关系，等待其他服务启动后再启动
+    depends_on:
+      - php
+    restart: always
+  php:
+    container_name: php
+    #image: bitnami/php-fpm # 镜像名
+    build: . # 构建镜像
+    ports:
+      - 9000:9000 # 主机端口:容器端口
+    volumes:
+      - /home/wuh/docker/php/conf.d:/opt/bitnami/php/etc/conf.d # PHP配置文件目录
+      - /home/wuh/docker/php/logs:/opt/bitnami/php/logs # PHP日志目录
+      - /data/www:/var/www/html # 网站根目录
+    networks:
+      - lnmp-network                    # 使用相同的网络
+    environment:                          # 环境变量
+        - PHP_FPM_PM_MAX_CHILDREN=10      # PHP-FPM 进程管理配置
+        - PHP_MEMORY_LIMIT=256M           # PHP 内存限制
+        - timezone=Asia/Shanghai         # 时区
+    # user: "www"
+    depends_on:
+      - mysql
+      - redis
+    restart: always
+  mysql:
+    container_name: mysql
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment: # 环境变量
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: wuh
+      MYSQL_USER: wuh
+      MYSQL_PASSWORD: admin@888
+    volumes:
+      - /home/wuh/docker/mysql/data:/var/lib/mysql # 数据目录
+      - /home/wuh/docker/mysql/conf.d:/etc/mysql/conf.d # 配置文件目录
+      - /home/wuh/docker/mysql/logs:/var/log/mysql # 日志目录
+    networks:
+      - lnmp-network
+    restart: always
+ 
+  redis:
+    container_name: redis
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - /home/wuh/docker/redis/data:/data
+      - /home/wuh/docker/redis/conf:/usr/local/etc/redis
+      - /home/wuh/docker/redis/logs:/var/log/redis
+    command: redis-server --requirepass admin@888
+    networks:
+      - lnmp-network
+    restart: always
+  
+networks:
+  # 网络名
+  lnmp-network:
+    # 网络驱动
+    driver: bridge

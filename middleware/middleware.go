@@ -1,7 +1,9 @@
 package middleware
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -11,10 +13,34 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var Apis []string = []string{
+	"/user/add",
+}
+
 func Middleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		// 中间件逻辑
 
+		resp := &utils.Response{}
+
+		// 请求数据 获取后需要重新赋值
+		params, err := ctx.GetRawData()
+		if err != nil {
+			resp.Code = utils.PARAMS_ERR
+			resp.Output(ctx)
+			ctx.Abort()
+			return
+		}
+		// 重新赋值
+		ctx.Request.Body = io.NopCloser(bytes.NewBuffer(params))
+
+		fmt.Println(string(params))
+
+		if err := ctx.ShouldBind(params); err != nil {
+			resp.Code = utils.PARAMS_ERR
+			resp.Output(ctx)
+			ctx.Abort()
+			return
+		}
 		// 调用下一个处理函数
 		ctx.Next()
 	}

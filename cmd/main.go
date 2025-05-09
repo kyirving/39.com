@@ -21,13 +21,7 @@ func main() {
 		}
 	}()
 
-	for i := 0; i < 1000; i++ {
-		fmt.Printf("%d  16 = %d\n", i, i%8)
-	}
-	return
-
 	var options Options
-
 	_, err := flags.Parse(&options)
 	if err != nil {
 		fmt.Println("Parse error:", err)
