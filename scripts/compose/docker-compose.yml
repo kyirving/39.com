@@ -73,7 +73,7 @@ services:
       - "6379:6379"
     volumes:
       - /home/wuh/docker/redis/data:/data
-      - /home/wuh/docker/redis/conf:/usr/local/etc/redis
+      - /home/wuh/docker/redis/conf:/etc/mysql/conf.d
       - /home/wuh/docker/redis/logs:/var/log/redis
     command: redis-server --requirepass admin@888
     networks:

@@ -23,9 +23,10 @@ type RedisConf struct {
 }
 
 type AppConf struct {
-	Name string
-	Env  string
-	Port int
+	Name      string
+	Env       string
+	Port      int
+	SecretKey string
 }
 
 type LogConf struct {

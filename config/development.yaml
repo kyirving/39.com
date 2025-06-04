@@ -4,6 +4,7 @@ app:
   port: 8080
   env: dev
   domain: localhost
+  secretKey: Ys24jvjoKDnfAt77ZR1tV2P11ACv3DUp
 mysql: 
   host: 106.14.25.54
   port: 3306

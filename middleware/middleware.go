@@ -2,12 +2,14 @@ package middleware
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"time"
 
 	"39.com/config"
+	"39.com/internal/dto"
 	"39.com/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -17,30 +19,66 @@ var Apis []string = []string{
 	"/user/add",
 }
 
+// RequestCacheMiddleware 缓存请求体
+func RequestCacheMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// 缓存原始请求体
+		var buf bytes.Buffer
+		tee := io.TeeReader(c.Request.Body, &buf)
+		bodyBytes, _ := io.ReadAll(tee)
+		c.Request.Body = io.NopCloser(&buf)
+
+		// 存储到context中供后续使用
+		c.Set("raw_body", bodyBytes)
+		c.Next()
+	}
+}
+
 func Middleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-
 		resp := &utils.Response{}
+		// 获取公共参数
+		commonParams, exists := ctx.Get("raw_body")
+		if !exists {
+			fmt.Println("commonParams:", commonParams)
+			resp.Code = utils.PARAMS_ERR
+			resp.Msg = "获取公共参数失败"
+			resp.Output(ctx)
+			ctx.Abort()
+			return
+		}
 
-		// 请求数据 获取后需要重新赋值
-		params, err := ctx.GetRawData()
+		// 公共参数校验
+		commonParamsBytes, _ := commonParams.([]byte)
+		common := dto.CommonParams{}
+		err := json.Unmarshal(commonParamsBytes, &common)
 		if err != nil {
+			fmt.Println("err:", err)
 			resp.Code = utils.PARAMS_ERR
 			resp.Output(ctx)
 			ctx.Abort()
 			return
 		}
-		// 重新赋值
-		ctx.Request.Body = io.NopCloser(bytes.NewBuffer(params))
 
-		fmt.Println(string(params))
-
-		if err := ctx.ShouldBind(params); err != nil {
+		// 签名校验
+		allParams := make(map[string]interface{})
+		if err := json.Unmarshal(commonParamsBytes, &allParams); err != nil {
+			fmt.Println("err:", err)
 			resp.Code = utils.PARAMS_ERR
 			resp.Output(ctx)
 			ctx.Abort()
 			return
 		}
+
+		if allParams["sign"] != utils.Createsign(allParams, config.Conf.App.SecretKey) {
+			fmt.Println("sign err:", err)
+			resp.Code = utils.UNAUTHORIZED
+			resp.Msg = "签名校验失败"
+			resp.Output(ctx)
+			ctx.Abort()
+			return
+		}
+
 		// 调用下一个处理函数
 		ctx.Next()
 	}
@@ -72,6 +110,9 @@ func AccessLog() gin.HandlerFunc {
 		}
 		c.Next()
 		etime := time.Now()
+		params, _ := c.Get("raw_body")
+		var data map[string]interface{}
+		_ = json.Unmarshal(params.([]byte), &data)
 		// 记录日志
 		logrus.WithFields(logrus.Fields{
 			"request_id":   requestID,
@@ -85,7 +126,7 @@ func AccessLog() gin.HandlerFunc {
 			"status":       c.Writer.Status(),
 			"latency":      etime.Sub(stime).Milliseconds(),
 			"time":         stime.Format("2006-01-02 15:04:05"),
-			"params":       c.Request.URL.Query(),
+			"params":       data,
 			"content_type": c.ContentType(),
 		}).Info("web server access log")
 	}
