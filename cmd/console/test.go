@@ -9,22 +9,18 @@ import (
 
 func main() {
 	fmt.Println("Hello World")
+	//接收异常
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println(err)
+		}
+	}()
 
-	req := &request.Request{
-		Api:    "http://127.0.0.1:8080/user/add",
-		Method: http.MethodPost,
-		Data: map[string]interface{}{
-			"password": "123456",
-			"username": "wuh",
-		},
-		Headers: map[string]string{
-			"Content-Type": "application/json",
-		},
-	}
-
-	err := req.Send()
+	data := make(map[string]interface{})
+	req := request.NewRequest("http://127.0.0.1/user/add", http.MethodPost, data, request.NewReqOptions(5))
+	output, err := req.Send()
 	if err != nil {
-		fmt.Println("err : ", err)
+		panic(err)
 	}
-	fmt.Println("resp:", string(req.Resp))
+	fmt.Println(string(output))
 }
